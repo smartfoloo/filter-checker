@@ -47,6 +47,11 @@ async function fetchCategorization(url) {
     const body = await response.json()
     const categories = [body.data.a.cat, body.data.b.cat]
 
+    // Add detailed logging of the Lightspeed response
+    console.log(`Lightspeed API Response for ${url}:`)
+    console.log(`Category numbers: ${categories.join(", ")}`)
+    console.log(`Raw response: ${JSON.stringify(body)}`)
+
     const isUnblocked = categories.some((cat) => lightspeedCategoryNumbers.includes(cat))
 
     let categoryName = "Unknown"
