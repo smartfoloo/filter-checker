@@ -8,8 +8,8 @@ To run this app, first, open your preferred Terminal app such as Terminal for Ma
 Then, paste this code in:
 
 ```bash
-git clone https://github.com/smartfoloo/freedns-filter-checker.git
-cd freedns-filter-checker
+git clone https://github.com/smartfoloo/filter-checker.git
+cd filter-checker
 npm i
 npm start
 ```
