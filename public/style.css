@@ -1,272 +1,426 @@
-@import url("https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&display=swap");
-
 :root {
-  --background: #11111b;
-  --background2: #181825;
-  --background3: #1e1e2e;
-  --highlight: #8aadf4;
-  --text-color: #cdd6f4;
-  --loading-color: #f9e2af;
-  --progress-color: #89b4fa;
-  --button-hover: #91d7e3;
-  --shadow: rgba(138, 173, 244, 0.5);
-  --unblocked: #a6e3a1;
-  --blocked: #f38ba8;
-  --tip-accent: #a6e3a1;
+  --bg: #0d0d0f;
+  --card-bg: #1a1a1d;
+  --card-bg-raised: #212124;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --text: #f2f2f3;
+  --text-muted: #9a9aa0;
+  --text-faint: #6c6c72;
+  --accent: #ffffff;
+  --accent-hover: #d9d9db;
+  --danger: #f87171;
+  --danger-bg: rgba(248, 113, 113, 0.14);
+  --success: #4ade80;
+  --success-bg: rgba(74, 222, 128, 0.14);
+  --radius-card: 20px;
+  --radius-control: 12px;
+  --radius-pill: 999px;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1.25rem;
+  --space-lg: 2rem;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  height: 100%;
 }
 
 body {
-  font-family: "Geist";
-  background-color: var(--background);
-  color: var(--text-color);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   margin: 0;
-  padding: 20px;
-}
-
-.tip {
-  background-color: var(--background3);
-  border-left: 4px solid var(--tip-accent);
-  padding: 12px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: calc(100% - 40px);
-  max-width: 800px;
-  margin-bottom: 20px;
-  border-radius: 0 5px 5px 0;
-}
-
-.tip i {
-  color: var(--tip-accent);
-  font-size: 1.2em;
-}
-
-h1 {
-  font-size: 2em;
-  margin: 0px;
-  color: var(--highlight);
-}
-
-h2 {
-  margin: 5px 0px;
-}
-
-h3 {
-  margin: 0px;
-}
-
-p {
-  margin: 0px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
-  color: var(--text-color);
+  color: var(--accent);
 }
 
-.desc {
-  margin: 30px 0px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-lg) 1.5rem calc(var(--space-lg) * 2);
 }
 
-.filter-selection {
+.app-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0 0 var(--space-lg);
+}
+
+.intro {
+  color: var(--text-muted);
+  margin: 0 0 var(--space-lg);
+}
+
+/* Text input / textarea */
+.text-input {
   width: 100%;
-  max-width: 500px;
-  margin-bottom: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  margin-top: var(--space-lg);
+  background: var(--card-bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 0.8rem 1rem;
+  resize: vertical;
 }
 
-.checkbox-group {
-  display: flex;
-  gap: 20px;
+.text-input::placeholder {
+  color: var(--text-faint);
 }
 
-.checkbox-label {
+.text-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.field-error {
+  display: block;
+  color: var(--danger);
+  margin-top: var(--space-sm);
+  font-size: 0.88rem;
+}
+
+/* Filter cards: bordered row with a checkbox indicator, Chakra checkbox-card style */
+.filter-card-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: var(--space-sm);
+}
+
+.filter-card {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: var(--space-md);
+  width: auto;
+  min-height: 44px;
+  padding: 0.6rem 1.25rem;
+  background: var(--card-bg);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  font-family: inherit;
+  font-size: 0.95rem;
   cursor: pointer;
 }
 
-.checkbox-label input[type="checkbox"] {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  background-color: var(--background3);
-  border: 1px solid var(--highlight);
+.filter-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.filter-card-label {
+  font-weight: 500;
+}
+
+.filter-card-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  flex-shrink: 0;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 5px;
+  color: transparent;
+  background: transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.filter-card[aria-pressed="true"] {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 1px #ffffff;
+}
+
+.filter-card[aria-pressed="true"] .filter-card-checkbox {
+  background: #ffffff;
+  border-color: #ffffff;
+  color: #0d0d0f;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: var(--radius-control);
+  border: 1px solid transparent;
+  padding: 0.75rem 1.4rem;
   cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+  white-space: nowrap;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.btn-primary {
+  background: #ffffff;
+  color: #0d0d0f;
+}
+
+.btn-primary:hover {
+  background: #e4e4e5;
+}
+
+.btn-primary:disabled {
+  background: #3a3a3f;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.btn-ghost:hover {
+  background: var(--card-bg-raised);
+}
+
+.btn-block {
+  display: flex;
+  width: 100%;
+  margin-top: var(--space-lg);
+}
+
+.btn-block[aria-busy="true"] {
+  cursor: progress;
+}
+
+/* Split button + dropdown */
+.split-button {
+  display: inline-flex;
+}
+
+.split-button .btn-primary:not(.dropdown-toggle) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.split-button details.dropdown {
   position: relative;
 }
 
-.checkbox-label input[type="checkbox"]:checked {
-  background-color: var(--highlight);
+.dropdown-toggle {
+  height: 100%;
+  padding: 0.75rem 0.9rem;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: 1px solid rgba(0, 0, 0, 0.15);
+  list-style: none;
 }
 
-.checkbox-label input[type="checkbox"]:checked::after {
-  content: "✓";
+.dropdown-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.dropdown-menu {
   position: absolute;
-  color: var(--background);
-  font-size: 12px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  right: 0;
+  top: calc(100% + 0.5rem);
+  min-width: 12rem;
+  margin: 0;
+  padding: 0.4rem;
+  list-style: none;
+  background: var(--card-bg-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  z-index: 10;
 }
 
-textarea {
-  width: 100%;
-  max-width: 500px;
-  height: 200px;
-  padding: 10px;
-  border: none;
-  border-radius: 20.25px;
-  background-color: var(--background3);
-  color: var(--text-color);
-  font-size: 1em;
-  resize: none;
-  margin-bottom: 10px;
+.dropdown-menu li + li {
+  margin-top: 0.15rem;
+}
+
+.dropdown-menu a {
+  display: block;
+  padding: 0.55rem 0.7rem;
+  border-radius: calc(var(--radius-control) - 4px);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.92rem;
+}
+
+.dropdown-menu a:hover,
+.dropdown-menu a:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
   outline: none;
-  font-family: "Geist Mono";
 }
 
-button {
-  background-color: var(--highlight);
-  color: var(--text-color);
-  padding: 10px 20px;
-  font-size: 1em;
-  font-family: "Geist";
-  border: none;
-  border-radius: 20.25px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  color: var(--background);
+/* Loading screen */
+#loadingScreen {
+  min-height: 55vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-button:hover {
-  background-color: var(--button-hover);
-}
-
-.loading-text {
-  margin-top: 15px;
-  font-style: italic;
-  color: var(--loading-color);
-  font-family: "Geist Mono";
-  min-width: 100px;
+.loading-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
   text-align: center;
 }
 
-#loading {
-  display: none;
+.spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 3px solid var(--border-strong);
+  border-top-color: var(--accent);
+  animation: spin 0.8s linear infinite;
 }
 
-#progress-container {
-  width: 100%;
-  max-width: 500px;
-  background-color: var(--background3);
-  border-radius: 5px;
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.progress-track {
+  width: 16rem;
+  height: 0.4rem;
+  background: var(--card-bg-raised);
+  border-radius: var(--radius-pill);
   overflow: hidden;
-  margin-top: 10px;
-  display: none;
 }
 
-#progress-bar {
+.progress-fill {
+  height: 100%;
   width: 0%;
-  height: 20px;
-  background-color: var(--progress-color);
-  transition: width 0.4s ease;
+  background: var(--accent);
+  border-radius: var(--radius-pill);
+  transition: width 0.15s ease;
 }
 
-#controls {
+@media (prefers-reduced-motion: reduce) {
+
+  .spinner,
+  .progress-fill {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* Results screen */
+#resultsHeader {
   display: flex;
-  justify-content: center;
   align-items: center;
-  width: 50%;
-  max-width: 800px;
-  margin: 50px 0px 20px 0px;
-  gap: 10px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
 }
 
-.copy-button {
+.results-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+#resultsActions {
   display: flex;
   align-items: center;
-  gap: 5px;
-  flex: 1;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
 }
 
-.copy-button i {
-  font-size: 1.2em;
+.results-table-card {
+  overflow-x: auto;
 }
 
-#controls button {
-  background: var(--background);
-  color: var(--shadow);
-  padding: 5px 10px;
-  font-size: 12px;
-}
-
-#controls button:hover {
-  background: var(--background2);
-}
-
-#outputText {
-  margin-top: 20px;
-  width: 100%;
-  max-width: 800px;
-  padding: 10px;
-  background-color: var(--background3);
-  border-radius: 5px;
-  font-size: 1em;
-  line-height: 1.5;
-}
-
-#result {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-::placeholder {
-  color: var(--shadow);
-}
-
-table {
+table.results-table {
   width: 100%;
   border-collapse: collapse;
-  font-family: "Geist Mono", monospace;
-  font-size: 0.9em;
 }
 
-th,
-td {
-  padding: 8px 12px;
+table.results-table th {
   text-align: left;
-  border-bottom: 1px solid var(--background2);
-}
-
-th {
-  background-color: var(--background2);
-  color: var(--highlight);
+  font-size: 1rem;
   font-weight: 600;
+  color: var(--text);
+  padding: 1.1rem 1.4rem;
+  border-bottom: 1px solid var(--border);
 }
 
-tr:hover {
-  background-color: var(--background2);
+table.results-table td {
+  padding: 1.1rem 1.4rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
 }
 
-.unblocked {
-  color: var(--unblocked);
+table.results-table tr:last-child td {
+  border-bottom: none;
+}
+
+.status-pill {
+  display: inline-block;
+  padding: 0.15rem 0.65rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
   font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
 }
 
-.blocked {
-  color: var(--blocked);
-  font-weight: 600;
+.status-pill.blocked {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.status-pill.unblocked {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.status-pill.unknown,
+.status-pill.error,
+.status-pill.not-checked {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+}
+
+.category-desc {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Error banner */
+.error-banner {
+  border: 1px solid var(--danger);
+  background: var(--danger-bg);
+  color: var(--text);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-control);
+  margin-bottom: var(--space-md);
+  font-size: 0.92rem;
 }

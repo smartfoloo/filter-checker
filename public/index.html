@@ -4,49 +4,112 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link rel="stylesheet" href="style.css">
   <title>Filter Checker</title>
+  <meta name="description" content="Check how content filters categorize a list of domains.">
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-  <div class="tip">
-    <i class="bi bi-lightbulb"></i>
-    <span>URLs will be extracted automatically from your text - case doesn't matter!</span>
-  </div>
-  <div class="desc">
-    <h1>Filter Checker</h1>
-    <p>Refer to <a href="https://github.com/smartfoloo/filter-checker/blob/main/README.md">the documentation</a>
-      for a tutorial!</p>
-  </div>
-  <div class="filter-selection">
-    <label>Select filters to check:</label>
-    <div class="checkbox-group">
-      <label class="checkbox-label">
-        <input type="checkbox" id="lightspeedFilter" checked>
-        Lightspeed
-      </label>
-      <label class="checkbox-label">
-        <input type="checkbox" id="fortiguardFilter" checked>
-        FortiGuard
-      </label>
-    </div>
-  </div>
-  <textarea id="inputText" rows="10" placeholder="Paste your FreeDNS text..."></textarea><br>
-  <button onclick="checkLinks()">Check Links</button>
-  <div id="loading" class="loading-text">Fetching.</div>
-  <div id="progress-container">
-    <div id="progress-bar"></div>
-  </div>
-  <div id="controls" style="display: none;">
-    <button id="copyLightspeedUnblocked" class="copy-button">
-      <i class="bi bi-copy"></i> Copy Lightspeed Unblocked
-    </button>
-    <button id="copyFortiguardUnblocked" class="copy-button">
-      <i class="bi bi-copy"></i> Copy FortiGuard Unblocked
-    </button>
-  </div>
-  <div id="result"></div>
+  <main class="page">
+    <h1 class="app-title">Filter Checker</h1>
+
+    <div id="errorBanner" role="alert" class="error-banner" hidden></div>
+
+    <section id="inputScreen">
+      <p class="intro">Paste text containing domains to see how the selected content filters categorize them. Refer
+        to <a href="https://github.com/smartfoloo/filter-checker/blob/main/README.md">the documentation</a> for a
+        tutorial.</p>
+
+      <div class="filter-card-group" role="group" aria-label="Filters to check">
+        <button type="button" class="filter-card" id="lightspeedFilter" data-key="lightspeed" aria-pressed="true">
+          <span class="filter-card-label">Lightspeed</span>
+          <span class="filter-card-checkbox" aria-hidden="true">
+            <svg class="filter-card-check" width="14" height="11" viewBox="0 0 14 11" fill="none">
+              <path d="M1 5.5L5 9.5L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </span>
+        </button>
+        <button type="button" class="filter-card" id="fortiguardFilter" data-key="fortiguard" aria-pressed="true">
+          <span class="filter-card-label">FortiGuard</span>
+          <span class="filter-card-checkbox" aria-hidden="true">
+            <svg class="filter-card-check" width="14" height="11" viewBox="0 0 14 11" fill="none">
+              <path d="M1 5.5L5 9.5L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </span>
+        </button>
+        <button type="button" class="filter-card" id="ciscoFilter" data-key="cisco" aria-pressed="false">
+          <span class="filter-card-label">Cisco Talos</span>
+          <span class="filter-card-checkbox" aria-hidden="true">
+            <svg class="filter-card-check" width="14" height="11" viewBox="0 0 14 11" fill="none">
+              <path d="M1 5.5L5 9.5L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </span>
+        </button>
+        <button type="button" class="filter-card" id="securlyFilter" data-key="securly" aria-pressed="false">
+          <span class="filter-card-label">Securly</span>
+          <span class="filter-card-checkbox" aria-hidden="true">
+            <svg class="filter-card-check" width="14" height="11" viewBox="0 0 14 11" fill="none">
+              <path d="M1 5.5L5 9.5L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </span>
+        </button>
+        <button type="button" class="filter-card" id="contentkeeperFilter" data-key="contentkeeper"
+          aria-pressed="false">
+          <span class="filter-card-label">ContentKeeper</span>
+          <span class="filter-card-checkbox" aria-hidden="true">
+            <svg class="filter-card-check" width="14" height="11" viewBox="0 0 14 11" fill="none">
+              <path d="M1 5.5L5 9.5L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </span>
+        </button>
+      </div>
+      <small id="filterError" class="field-error" hidden>Select at least one filter to check.</small>
+
+      <textarea id="inputText" rows="7" class="text-input"
+        placeholder="Paste a list of domains, or any text containing domains&#10;e.g. example.com, https://discord.com"></textarea>
+
+      <button id="checkButton" class="btn btn-primary btn-block" type="button">Check domains</button>
+    </section>
+
+    <section id="loadingScreen" hidden>
+      <div class="loading-panel">
+        <div class="spinner" aria-hidden="true"></div>
+        <p id="loadingText">Checking domains&hellip;</p>
+        <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+          aria-label="Check progress">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="resultsScreen" hidden>
+      <div id="resultsHeader">
+        <h2 class="results-title">Results</h2>
+        <div id="resultsActions">
+          <div class="split-button">
+            <button id="copyAllButton" class="btn btn-primary" type="button">Copy unblocked</button>
+            <details class="dropdown" id="copyDropdown">
+              <summary class="btn btn-primary dropdown-toggle" aria-label="More copy options">
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
+                  <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </summary>
+              <ul id="copyDropdownList" class="dropdown-menu"></ul>
+            </details>
+          </div>
+          <button id="newCheckButton" class="btn btn-ghost" type="button">New check</button>
+        </div>
+      </div>
+      <div id="resultsBody"></div>
+    </section>
+  </main>
+
   <script src="script.js"></script>
 </body>
 

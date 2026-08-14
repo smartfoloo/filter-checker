@@ -1,200 +1,257 @@
-async function checkLinks() {
-  const resultDiv = document.getElementById("result")
-  const loadingDiv = document.getElementById("loading")
-  const progressContainer = document.getElementById("progress-container")
-  const progressBar = document.getElementById("progress-bar")
-  const controlsDiv = document.getElementById("controls")
+const FILTERS = [
+  { key: "lightspeed", label: "Lightspeed", buttonId: "lightspeedFilter" },
+  { key: "fortiguard", label: "FortiGuard", buttonId: "fortiguardFilter" },
+  { key: "cisco", label: "Cisco Talos", buttonId: "ciscoFilter" },
+  { key: "securly", label: "Securly", buttonId: "securlyFilter" },
+  { key: "contentkeeper", label: "ContentKeeper", buttonId: "contentkeeperFilter" },
+]
 
-  // Get filter selections
-  const checkLightspeed = document.getElementById("lightspeedFilter").checked
-  const checkFortiGuard = document.getElementById("fortiguardFilter").checked
+const inputScreen = document.getElementById("inputScreen")
+const loadingScreen = document.getElementById("loadingScreen")
+const resultsScreen = document.getElementById("resultsScreen")
 
-  // Validate at least one filter is selected
-  if (!checkLightspeed && !checkFortiGuard) {
-    alert("Please select at least one filter to check.")
-    return
+const inputText = document.getElementById("inputText")
+const checkButton = document.getElementById("checkButton")
+const newCheckButton = document.getElementById("newCheckButton")
+const progressFill = document.getElementById("progressFill")
+const progressTrack = document.querySelector(".progress-track")
+const loadingText = document.getElementById("loadingText")
+const filterError = document.getElementById("filterError")
+const errorBanner = document.getElementById("errorBanner")
+const resultsBody = document.getElementById("resultsBody")
+const copyAllButton = document.getElementById("copyAllButton")
+const copyDropdown = document.getElementById("copyDropdown")
+const copyDropdownList = document.getElementById("copyDropdownList")
+
+let progressSource = null
+let lastResults = { domains: [], activeFilters: [] }
+
+function showScreen(screen) {
+  for (const s of [inputScreen, loadingScreen, resultsScreen]) {
+    s.hidden = s !== screen
   }
+}
 
-  resultDiv.innerHTML = ""
-  loadingDiv.style.display = "block"
-  progressContainer.style.display = "block"
-  progressBar.style.width = "0%"
-  controlsDiv.style.display = "none"
+function getSelectedFilters() {
+  return FILTERS.filter((f) => document.getElementById(f.buttonId).getAttribute("aria-pressed") === "true")
+}
 
-  // Start the loading animation
-  startLoadingAnimation()
+for (const f of FILTERS) {
+  document.getElementById(f.buttonId).addEventListener("click", (event) => {
+    const pressed = event.currentTarget.getAttribute("aria-pressed") === "true"
+    event.currentTarget.setAttribute("aria-pressed", String(!pressed))
+    filterError.hidden = true
+  })
+}
 
-  const inputText = document.getElementById("inputText").value
+function showError(message) {
+  errorBanner.textContent = message
+  errorBanner.hidden = false
+}
+
+function hideError() {
+  errorBanner.hidden = true
+}
+
+function extractDomains(text) {
   const domainRegex = /([a-zA-Z0-9-]+(\.[a-zA-Z]{2,}){1,2})/g
-  const extractedDomains = inputText.match(domainRegex)
-  const uniqueDomains = [...new Set(extractedDomains || [])]
+  const matches = text.match(domainRegex) || []
+  return [...new Set(matches)]
+}
 
-  if (uniqueDomains.length === 0) {
-    resultDiv.innerHTML = "Please enter URLs to check."
-    loadingDiv.style.display = "none"
-    progressContainer.style.display = "none"
-    stopLoadingAnimation()
+function statusClass(status) {
+  if (status === "Blocked") return "blocked"
+  if (status === "Unblocked") return "unblocked"
+  if (status === "Error") return "error"
+  if (status === "Not Checked") return "not-checked"
+  return "unknown"
+}
+
+function renderResultsTable(domains, activeFilters) {
+  const table = document.createElement("table")
+  table.className = "results-table"
+
+  let header = "<thead><tr><th>Domain</th>"
+  for (const f of activeFilters) {
+    header += `<th>${f.label}</th>`
+  }
+  header += "</tr></thead>"
+
+  const rows = domains
+    .map((domain) => {
+      let row = `<tr><td>${domain.url}</td>`
+      for (const f of activeFilters) {
+        const result = domain[f.key] || { status: "Unknown", category: "Unknown" }
+        row += `
+          <td>
+            <span class="status-pill ${statusClass(result.status)}">${result.status}</span>
+            <div class="category-desc">${result.category || "N/A"}</div>
+          </td>
+        `
+      }
+      row += "</tr>"
+      return row
+    })
+    .join("")
+
+  table.innerHTML = header + `<tbody>${rows}</tbody>`
+
+  const card = document.createElement("div")
+  card.className = "results-table-card"
+  card.appendChild(table)
+
+  resultsBody.innerHTML = ""
+  resultsBody.appendChild(card)
+}
+
+function unblockedFor(domains, filterKey) {
+  return domains.filter((domain) => domain[filterKey]?.status === "Unblocked").map((domain) => domain.url)
+}
+
+function unblockedEverywhere(domains, activeFilters) {
+  return domains
+    .filter((domain) => activeFilters.every((f) => domain[f.key]?.status === "Unblocked"))
+    .map((domain) => domain.url)
+}
+
+async function copyToClipboard(list, emptyMessage) {
+  if (list.length === 0) {
+    showError(emptyMessage)
     return
   }
+  try {
+    await navigator.clipboard.writeText(list.join("\n"))
+    hideError()
+  } catch (err) {
+    showError("Could not copy to clipboard. Your browser may be blocking clipboard access.")
+  }
+}
+
+function renderCopyDropdown(activeFilters) {
+  copyDropdownList.innerHTML = ""
+  for (const f of activeFilters) {
+    const li = document.createElement("li")
+    const a = document.createElement("a")
+    a.href = "#"
+    a.textContent = `${f.label} only`
+    a.addEventListener("click", (event) => {
+      event.preventDefault()
+      copyDropdown.removeAttribute("open")
+      copyToClipboard(unblockedFor(lastResults.domains, f.key), `No unblocked domains found for ${f.label}.`)
+    })
+    li.appendChild(a)
+    copyDropdownList.appendChild(li)
+  }
+}
+
+document.addEventListener("click", (event) => {
+  if (copyDropdown.hasAttribute("open") && !copyDropdown.contains(event.target)) {
+    copyDropdown.removeAttribute("open")
+  }
+})
+
+copyAllButton.addEventListener("click", () => {
+  copyToClipboard(
+    unblockedEverywhere(lastResults.domains, lastResults.activeFilters),
+    "No domains are unblocked across every checked filter.",
+  )
+})
+
+function setProgress(percentage) {
+  progressFill.style.width = `${percentage}%`
+  progressTrack.setAttribute("aria-valuenow", String(percentage))
+}
+
+function startProgressTracking(total) {
+  stopProgressTracking()
+  setProgress(0)
+
+  progressSource = new EventSource("/progress")
+  progressSource.onmessage = (event) => {
+    const data = JSON.parse(event.data)
+    setProgress(data.percentage)
+    loadingText.textContent = `Checking ${total} domain${total === 1 ? "" : "s"}… ${data.percentage}%`
+  }
+  progressSource.onerror = () => {
+    stopProgressTracking()
+  }
+}
+
+function stopProgressTracking() {
+  if (progressSource) {
+    progressSource.close()
+    progressSource = null
+  }
+}
+
+async function checkLinks() {
+  hideError()
+  filterError.hidden = true
+
+  const activeFilters = getSelectedFilters()
+  if (activeFilters.length === 0) {
+    filterError.hidden = false
+    return
+  }
+
+  const domains = extractDomains(inputText.value)
+  if (domains.length === 0) {
+    filterError.hidden = true
+    showError("No domains found in the text above. Paste a list of domains, or any text that contains some.")
+    return
+  }
+
+  showScreen(loadingScreen)
+  loadingText.textContent = `Checking ${domains.length} domain${domains.length === 1 ? "" : "s"}…`
+  startProgressTracking(domains.length)
 
   try {
     const response = await fetch("/check-links", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        urls: uniqueDomains,
+        urls: domains,
         filters: {
-          lightspeed: checkLightspeed,
-          fortiguard: checkFortiGuard,
+          lightspeed: activeFilters.some((f) => f.key === "lightspeed"),
+          fortiguard: activeFilters.some((f) => f.key === "fortiguard"),
+          cisco: activeFilters.some((f) => f.key === "cisco"),
+          securly: activeFilters.some((f) => f.key === "securly"),
+          contentkeeper: activeFilters.some((f) => f.key === "contentkeeper"),
         },
       }),
     })
 
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}))
+      throw new Error(body.error || `Request failed with status ${response.status}`)
+    }
+
     const data = await response.json()
 
-    console.log("Received data:", data)
-
-    loadingDiv.style.display = "none"
-    progressContainer.style.display = "none"
-    stopLoadingAnimation()
-
-    if (!data || !data.domains || data.domains.length === 0) {
-      resultDiv.innerHTML = "No domains found or error processing domains."
-      return
+    if (!data?.domains?.length) {
+      throw new Error("No results returned.")
     }
 
-    // Create table with columns based on selected filters
-    const table = document.createElement("table")
-
-    // Build table header based on selected filters
-    let tableHeader = `
-      <thead>
-        <tr>
-          <th>Domain</th>
-    `
-
-    if (checkLightspeed) {
-      tableHeader += `
-          <th>Lightspeed Status</th>
-          <th>Lightspeed Category</th>
-      `
-    }
-
-    if (checkFortiGuard) {
-      tableHeader += `
-          <th>FortiGuard Status</th>
-          <th>FortiGuard Category</th>
-      `
-    }
-
-    tableHeader += `
-        </tr>
-      </thead>
-    `
-
-    // Build table rows based on selected filters
-    const tableRows = data.domains
-      .map((domain) => {
-        let row = `
-        <tr>
-          <td>${domain.url}</td>
-      `
-
-        if (checkLightspeed) {
-          row += `
-          <td class="${domain.lightspeed.status === "Unblocked" ? "unblocked" : "blocked"}">${domain.lightspeed.status}</td>
-          <td>${domain.lightspeed.category || "N/A"}</td>
-        `
-        }
-
-        if (checkFortiGuard) {
-          row += `
-          <td class="${domain.fortiguard.status === "Unblocked" ? "unblocked" : "blocked"}">${domain.fortiguard.status}</td>
-          <td>${domain.fortiguard.category || "N/A"}</td>
-        `
-        }
-
-        row += `
-        </tr>
-      `
-
-        return row
-      })
-      .join("")
-
-    table.innerHTML = tableHeader + `<tbody>${tableRows}</tbody>`
-    resultDiv.appendChild(table)
-
-    // Show controls after results are loaded
-    controlsDiv.style.display = "flex"
-
-    // Show/hide copy buttons based on selected filters
-    document.getElementById("copyLightspeedUnblocked").style.display = checkLightspeed ? "flex" : "none"
-    document.getElementById("copyFortiguardUnblocked").style.display = checkFortiGuard ? "flex" : "none"
-
-    // Add event listeners for the copy buttons
-    document.getElementById("copyLightspeedUnblocked").addEventListener("click", () => {
-      copyUnblockedDomains(data.domains, "lightspeed")
-    })
-
-    document.getElementById("copyFortiguardUnblocked").addEventListener("click", () => {
-      copyUnblockedDomains(data.domains, "fortiguard")
-    })
-  } catch (error) {
-    resultDiv.innerHTML = "Error checking links. Please try again."
-    console.error("Error fetching data:", error)
-    loadingDiv.style.display = "none"
-    progressContainer.style.display = "none"
-    stopLoadingAnimation()
+    lastResults = { domains: data.domains, activeFilters }
+    renderResultsTable(data.domains, activeFilters)
+    renderCopyDropdown(activeFilters)
+    showScreen(resultsScreen)
+  } catch (err) {
+    console.error("Error checking links:", err)
+    showScreen(inputScreen)
+    showError(`Couldn't check those domains: ${err.message}`)
+  } finally {
+    stopProgressTracking()
   }
 }
 
-// Loading animation variables
-let loadingAnimationInterval
-let loadingAnimationState = 0
-const loadingStates = ["Fetching.", "Fetching..", "Fetching...", "Fetching...."]
+checkButton.addEventListener("click", checkLinks)
 
-// Function to start the loading animation
-function startLoadingAnimation() {
-  const loadingDiv = document.getElementById("loading")
-  loadingAnimationState = 0
-  loadingDiv.textContent = loadingStates[loadingAnimationState]
-
-  loadingAnimationInterval = setInterval(() => {
-    loadingAnimationState = (loadingAnimationState + 1) % loadingStates.length
-    loadingDiv.textContent = loadingStates[loadingAnimationState]
-  }, 300) // Change the text every 300ms
-}
-
-// Function to stop the loading animation
-function stopLoadingAnimation() {
-  clearInterval(loadingAnimationInterval)
-}
-
-function copyUnblockedDomains(domains, filter) {
-  const unblockedDomains = domains
-    .filter((domain) => domain[filter].status === "Unblocked")
-    .map((domain) => domain.url)
-    .join("\n")
-
-  navigator.clipboard.writeText(unblockedDomains).then(
-    () => {
-      alert(`Unblocked domains for ${filter} copied to clipboard!`)
-    },
-    (err) => {
-      console.error("Could not copy text: ", err)
-    },
-  )
-}
-
-const progressSource = new EventSource("/progress")
-progressSource.onmessage = (event) => {
-  const progress = JSON.parse(event.data)
-  const progressBar = document.getElementById("progress-bar")
-  progressBar.style.width = progress.percentage + "%"
-}
-
-window.addEventListener("beforeunload", () => {
-  progressSource.close()
+newCheckButton.addEventListener("click", () => {
+  hideError()
+  showScreen(inputScreen)
 })
 
+window.addEventListener("beforeunload", () => {
+  stopProgressTracking()
+})

@@ -35,4 +35,3 @@ Copy everything on the page by pressing `Ctrl + A`
 
 ![image](https://github.com/user-attachments/assets/7f6c101b-f616-4769-a33d-a2b4cd286881)
 
-And paste it into the app to find unblocked domains!

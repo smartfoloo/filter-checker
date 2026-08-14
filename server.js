@@ -2,8 +2,12 @@ const express = require("express")
 const fetch = require("node-fetch")
 const fs = require("fs")
 const path = require("path")
-const app = express()
 require("dotenv").config()
+
+const { lightspeed } = require("./filters/lightspeed.js")
+const { securly } = require("./filters/securly.js")
+const { contentkeeper } = require("./filters/contentkeeper.js")
+const app = express()
 
 const PORT = process.env.PORT || 8080
 
@@ -12,66 +16,34 @@ app.use(express.json())
 
 const progress = { completed: 0, total: 0 }
 
-const lightspeedCategoryNumbers = [
-  6, 9, 10, 14, 15, 18, 20, 29, 30, 36, 37, 40, 41, 43, 44, 45, 46, 47, 48, 49, 50, 51, 57, 58, 59, 69, 73, 75, 76, 77,
-  79, 83, 84, 85, 99, 129, 131, 132, 139, 140, 900,
-]
-
 const fortiguardCategoryNumbers = [
   0, 9, 28, 29, 30, 31, 33, 34, 35, 36, 39, 40, 41, 42, 43, 44, 46, 47, 49, 50, 51, 52, 53, 63, 75, 76, 77, 78, 79, 80,
   81, 82, 84, 92,
 ]
 
-const lightspeedCategoriesPath = path.join(__dirname, "./public/lightspeed-categories.json")
-const lightspeedCategories = JSON.parse(fs.readFileSync(lightspeedCategoriesPath, "utf8"))
+const ciscoBlockedPath = path.join(__dirname, "./public/cisco-blocked.json")
+const ciscoBlocked = JSON.parse(fs.readFileSync(ciscoBlockedPath, "utf8"))
 
-async function fetchCategorization(url) {
-  try {
-    const response = await fetch("https://production-archive-proxy-api.lightspeedsystems.com/archiveproxy", {
-      method: "POST",
-      headers: {
-        accept: "application/json, text/plain, */*",
-        "accept-language": "en-US,en;q=0.9",
-        authority: "production-archive-proxy-api.lightspeedsystems.com",
-        "content-type": "application/json",
-        origin: "https://archive.lightspeedsystems.com",
-        "user-agent": "Mozilla/5.0",
-        "x-api-key": "onEkoztnFpTi3VG7XQEq6skQWN3aFm3h",
-      },
-      body: `{"query":"\\nquery getDeviceCategorization($itemA: CustomHostLookupInput!, $itemB: CustomHostLookupInput!){\\n  a: custom_HostLookup(item: $itemA) { cat}\\n  b: custom_HostLookup(item: $itemB) { cat   \\n  }\\n}","variables":{"itemA":{"hostname":"${url}"}, "itemB":{"hostname":"${url}"}}}`,
-    })
+function tupleResult(result) {
+  if (result === "Error" || !Array.isArray(result)) {
+    return { status: "Error", category: "Error" }
+  }
 
-    if (!response.ok) {
-      console.error("Network response was not ok:", response.statusText)
-      return { categories: [], status: "Unknown", categoryName: "Unknown" }
-    }
+  const [category, allowed] = result
+  return {
+    status: allowed ? "Unblocked" : "Blocked",
+    category: category || "Unknown",
+  }
+}
 
-    const body = await response.json()
-    const categories = [body.data.a.cat, body.data.b.cat]
+function contentKeeperResult(result) {
+  if (result === "Error" || !result || typeof result !== "object") {
+    return { status: "Error", category: "Error" }
+  }
 
-    // Add detailed logging of the Lightspeed response
-    console.log(`Lightspeed API Response for ${url}:`)
-    console.log(`Category numbers: ${categories.join(", ")}`)
-    console.log(`Raw response: ${JSON.stringify(body)}`)
-
-    const isUnblocked = categories.some((cat) => lightspeedCategoryNumbers.includes(cat))
-
-    let categoryName = "Unknown"
-    for (const cat of categories) {
-      if (lightspeedCategories[cat]) {
-        categoryName = lightspeedCategories[cat]
-        break
-      }
-    }
-
-    return {
-      categories,
-      status: isUnblocked ? "Unblocked" : "Blocked",
-      categoryName,
-    }
-  } catch (error) {
-    console.error("Fetch error:", error)
-    return { categories: [], status: "Error", categoryName: "Error" }
+  return {
+    status: result.blocked ? "Blocked" : "Unblocked",
+    category: result.category || "Unknown",
   }
 }
 
@@ -136,6 +108,37 @@ async function fetchFortiGuard(url) {
   }
 }
 
+async function fetchCisco(url) {
+  try {
+    console.log(`Fetching Cisco Talos data for: ${url}`)
+
+    const response = await fetch(`https://talosintelligence.com/cloud_intel/url_reputation?url=${encodeURIComponent(url)}`)
+
+    if (!response.ok) {
+      console.error("Cisco Talos response was not ok:", response.statusText)
+      return { status: "Unknown", categoryName: "Unknown" }
+    }
+
+    const body = await response.json()
+    const categoryEntries = body?.reputation?.aup_cat || []
+    const categories = categoryEntries.map((entry) => entry.name)
+
+    if (categories.length === 0) {
+      return { status: "Blocked", categoryName: "Not rated" }
+    }
+
+    const isBlocked = categories.some((cat) => ciscoBlocked.includes(cat))
+
+    return {
+      status: isBlocked ? "Blocked" : "Unblocked",
+      categoryName: categories.join(", "),
+    }
+  } catch (error) {
+    console.error("Error fetching Cisco Talos data:", error)
+    return { status: "Error", categoryName: "Error" }
+  }
+}
+
 app.post("/check-links", async (req, res) => {
   const { urls, filters } = req.body
   if (!Array.isArray(urls) || urls.length === 0) {
@@ -144,8 +147,11 @@ app.post("/check-links", async (req, res) => {
 
   const checkLightspeed = filters?.lightspeed !== false
   const checkFortiGuard = filters?.fortiguard !== false
+  const checkCisco = filters?.cisco === true
+  const checkSecurly = filters?.securly === true
+  const checkContentKeeper = filters?.contentkeeper === true
 
-  if (!checkLightspeed && !checkFortiGuard) {
+  if (!checkLightspeed && !checkFortiGuard && !checkCisco && !checkSecurly && !checkContentKeeper) {
     return res.status(400).json({ error: "At least one filter must be selected." })
   }
 
@@ -169,16 +175,24 @@ app.post("/check-links", async (req, res) => {
           status: "Not Checked",
           category: "Not Checked",
         },
+        cisco: {
+          status: "Not Checked",
+          category: "Not Checked",
+        },
+        securly: {
+          status: "Not Checked",
+          category: "Not Checked",
+        },
+        contentkeeper: {
+          status: "Not Checked",
+          category: "Not Checked",
+        },
       }
 
       if (checkLightspeed) {
         console.log(`Checking Lightspeed for: ${cleanUrl}`)
         try {
-          const lightspeedData = await fetchCategorization(cleanUrl)
-          domainResult.lightspeed = {
-            status: lightspeedData.status,
-            category: lightspeedData.categoryName,
-          }
+          domainResult.lightspeed = tupleResult(await lightspeed(cleanUrl))
         } catch (lightspeedError) {
           console.error(`Error checking Lightspeed for ${cleanUrl}:`, lightspeedError)
           domainResult.lightspeed = {
@@ -205,6 +219,49 @@ app.post("/check-links", async (req, res) => {
         }
       }
 
+      if (checkCisco) {
+        console.log(`Checking Cisco Talos for: ${cleanUrl}`)
+        try {
+          const ciscoData = await fetchCisco(cleanUrl)
+          domainResult.cisco = {
+            status: ciscoData.status,
+            category: ciscoData.categoryName,
+          }
+        } catch (ciscoError) {
+          console.error(`Error checking Cisco Talos for ${cleanUrl}:`, ciscoError)
+          domainResult.cisco = {
+            status: "Error",
+            category: "Error",
+          }
+        }
+      }
+
+      if (checkSecurly) {
+        console.log(`Checking Securly for: ${cleanUrl}`)
+        try {
+          domainResult.securly = tupleResult(await securly(cleanUrl))
+        } catch (securlyError) {
+          console.error(`Error checking Securly for ${cleanUrl}:`, securlyError)
+          domainResult.securly = {
+            status: "Error",
+            category: "Error",
+          }
+        }
+      }
+
+      if (checkContentKeeper) {
+        console.log(`Checking ContentKeeper for: ${cleanUrl}`)
+        try {
+          domainResult.contentkeeper = contentKeeperResult(await contentkeeper(cleanUrl))
+        } catch (contentKeeperError) {
+          console.error(`Error checking ContentKeeper for ${cleanUrl}:`, contentKeeperError)
+          domainResult.contentkeeper = {
+            status: "Error",
+            category: "Error",
+          }
+        }
+      }
+
       domainResults.push(domainResult)
     } catch (error) {
       console.error(`Error processing ${cleanUrl}:`, error)
@@ -217,6 +274,18 @@ app.post("/check-links", async (req, res) => {
         fortiguard: {
           status: checkFortiGuard ? "Error" : "Not Checked",
           category: checkFortiGuard ? "Error" : "Not Checked",
+        },
+        cisco: {
+          status: checkCisco ? "Error" : "Not Checked",
+          category: checkCisco ? "Error" : "Not Checked",
+        },
+        securly: {
+          status: checkSecurly ? "Error" : "Not Checked",
+          category: checkSecurly ? "Error" : "Not Checked",
+        },
+        contentkeeper: {
+          status: checkContentKeeper ? "Error" : "Not Checked",
+          category: checkContentKeeper ? "Error" : "Not Checked",
         },
       })
     } finally {
@@ -237,17 +306,18 @@ app.get("/progress", (req, res) => {
   res.setHeader("Connection", "keep-alive")
 
   const interval = setInterval(() => {
-    const percentage = Math.round((progress.completed / progress.total) * 100)
+    const percentage = progress.total > 0 ? Math.round((progress.completed / progress.total) * 100) : 0
     res.write(`data: ${JSON.stringify({ percentage })}\n\n`)
 
-    if (progress.completed === progress.total) {
+    if (progress.total > 0 && progress.completed === progress.total) {
       clearInterval(interval)
       res.end()
     }
   }, 100)
+
+  req.on("close", () => clearInterval(interval))
 })
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`)
 })
-
