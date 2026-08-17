@@ -9,7 +9,7 @@ const { securly } = require("./filters/securly.js")
 const { contentkeeper } = require("./filters/contentkeeper.js")
 const app = express()
 
-const PORT = process.env.PORT || 8080
+const PORT = Number(process.argv[2] || process.env.PORT) || 8080;
 
 app.use(express.static("public"))
 app.use(express.json())
