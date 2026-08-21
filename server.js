@@ -12,7 +12,7 @@ const { senso } = require("./filters/senso.js")
 const { lanschool } = require("./filters/lanschool.js")
 const app = express()
 
-const PORT = Number(process.argv[2] || process.env.PORT) || 8080;
+const PORT = Number(process.argv[2] || process.env.PORT) || 8000;
 
 app.use(express.static("public"))
 app.use(express.json())
