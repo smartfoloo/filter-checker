@@ -122,11 +122,6 @@ a {
   cursor: pointer;
 }
 
-.filter-card:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
 .filter-card-label {
   font-weight: 500;
 }
@@ -145,10 +140,6 @@ a {
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.filter-card[aria-pressed="true"] {
-  border-color: #ffffff;
-  box-shadow: 0 0 0 1px #ffffff;
-}
 
 .filter-card[aria-pressed="true"] .filter-card-checkbox {
   background: #ffffff;

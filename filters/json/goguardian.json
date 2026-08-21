@@ -1,0 +1,374 @@
+{
+  "0": [
+    "gn-math",
+    true
+  ],
+  "2": [
+    "Pornography",
+    true
+  ],
+  "3": [
+    "Online Games",
+    true
+  ],
+  "4": [
+    "Weapons",
+    true
+  ],
+  "5": [
+    "Adult",
+    true
+  ],
+  "6": [
+    "Anime",
+    true
+  ],
+  "7": [
+    "Adult & Deceptive Advertisments",
+    true
+  ],
+  "8": [
+    "Adult Forums/Communities",
+    true
+  ],
+  "9": [
+    "User Generated Adult",
+    true
+  ],
+  "10": [
+    "Time Wasting",
+    true
+  ],
+  "11": [
+    "Community Forums",
+    true
+  ],
+  "12": [
+    "Hacking Forums",
+    true
+  ],
+  "13": [
+    "General Games Websites",
+    true
+  ],
+  "14": [
+    "Dating",
+    true
+  ],
+  "15": [
+    "Drugs/Abusive Content",
+    true
+  ],
+  "16": [
+    "Online Shopping",
+    false
+  ],
+  "17": [
+    "Social Media",
+    true
+  ],
+  "19": [
+    "Social Plugins",
+    true
+  ],
+  "20": [
+    "Alcohol and Drugs",
+    true
+  ],
+  "22": [
+    "Proxy",
+    true
+  ],
+  "23": [
+    "Piracy/Illegal Content",
+    true
+  ],
+  "25": [
+    "Education & Buisness Tools",
+    false
+  ],
+  "26": [
+    "Search Engines & Tools",
+    false
+  ],
+  "27": [
+    "Music Streaming",
+    true
+  ],
+  "28": [
+    "Blogs",
+    true
+  ],
+  "29": [
+    "Email Services",
+    false
+  ],
+  "30": [
+    "Online Communication",
+    true
+  ],
+  "31": [
+    "Social Networks",
+    true
+  ],
+  "32": [
+    "Canabis/Marijuana",
+    true
+  ],
+  "33": [
+    "Cigars/Tobacco/Vaping",
+    true
+  ],
+  "35": [
+    "Multi-Media Tools",
+    false
+  ],
+  "36": [
+    "General Filter Bypasses",
+    true
+  ],
+  "37": [
+    "Dangerous Websites",
+    true
+  ],
+  "38": [
+    "Miscellaneous File Hosting",
+    true
+  ],
+  "39": [
+    "File Hosting",
+    true
+  ],
+  "40": [
+    "Temporary Numbers",
+    true
+  ],
+  "41": [
+    "Cloud Hosted Content",
+    true
+  ],
+  "42": [
+    "Monetized Embedded Content (ads)",
+    true
+  ],
+  "43": [
+    "Celebrity Gossip/Entertainment News/Pop Culture",
+    true
+  ],
+  "44": [
+    "Movie Theater Tickets",
+    true
+  ],
+  "45": [
+    "Entertainment",
+    true
+  ],
+  "46": [
+    "Public Entertainment Platform (user generated content)",
+    true
+  ],
+  "47": [
+    "Cloud Enterprise/Information Technology",
+    false
+  ],
+  "48": [
+    "Banks",
+    false
+  ],
+  "49": [
+    "Jobs and Careers",
+    false
+  ],
+  "50": [
+    "Payment Gateway",
+    true
+  ],
+  "51": [
+    "Financial Services",
+    true
+  ],
+  "52": [
+    "Stock Market/Crypto",
+    true
+  ],
+  "54": [
+    "Hate Groups",
+    true
+  ],
+  "55": [
+    "Violence",
+    true
+  ],
+  "56": [
+    "Firearms",
+    true
+  ],
+  "57": [
+    "Useless Content",
+    true
+  ],
+  "58": [
+    "Educational Games",
+    false
+  ],
+  "59": [
+    "Gambling",
+    true
+  ],
+  "60": [
+    "General Online Shops",
+    false
+  ],
+  "61": [
+    "Large-Scale Marketplace",
+    false
+  ],
+  "62": [
+    "Online Trading",
+    true
+  ],
+  "63": [
+    "Cell Phones and Add-ons",
+    true
+  ],
+  "64": [
+    "Comics",
+    true
+  ],
+  "65": [
+    "Religion",
+    false
+  ],
+  "66": [
+    "Sports",
+    false
+  ],
+  "67": [
+    "News & Media",
+    false
+  ],
+  "68": [
+    "Traveling",
+    false
+  ],
+  "70": [
+    "Magazines",
+    false
+  ],
+  "71": [
+    "Podcasts & Radio",
+    false
+  ],
+  "72": [
+    "Inappropriate",
+    true
+  ],
+  "75": [
+    "Translators",
+    false
+  ],
+  "76": [
+    "Photography",
+    false
+  ],
+  "77": [
+    "Fan Fiction",
+    true
+  ],
+  "78": [
+    "Academic Dishonesty",
+    true
+  ],
+  "79": [
+    "Adult Comics/Manga",
+    true
+  ],
+  "80": [
+    "Archives",
+    true
+  ],
+  "81": [
+    "Educational Resources",
+    false
+  ],
+  "82": [
+    "Online Education",
+    false
+  ],
+  "83": [
+    "Nonprofit Education",
+    false
+  ],
+  "84": [
+    "Coding Education",
+    false
+  ],
+  "85": [
+    "Online Test Taking",
+    false
+  ],
+  "86": [
+    "Coding Platforms",
+    false
+  ],
+  "87": [
+    "Novels",
+    true
+  ],
+  "88": [
+    "Discussion Forum",
+    true
+  ],
+  "89": [
+    "Information",
+    false
+  ],
+  "91": [
+    "Artificial Intelligence Tools",
+    true
+  ],
+  "92": [
+    "Non Educational Technology",
+    true
+  ],
+  "93": [
+    "Authentication",
+    false
+  ],
+  "94": [
+    "Government",
+    false
+  ],
+  "95": [
+    "Lifestyle",
+    false
+  ],
+  "96": [
+    "Politics",
+    false
+  ],
+  "98": [
+    "Educational Coding Tools",
+    false
+  ],
+  "99": [
+    "Educational Foundations",
+    false
+  ],
+  "100": [
+    "Food",
+    false
+  ],
+  "101": [
+    "Online Casinos",
+    true
+  ],
+  "102": [
+    "Health",
+    false
+  ],
+  "130": [
+    "Uncategorized",
+    false
+  ]
+}

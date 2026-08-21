@@ -1,0 +1,138 @@
+{
+  "10001": [
+    "Abortion",
+    true
+  ],
+  "10003": [
+    "Pro-Life",
+    true
+  ],
+  "10005": [
+    "Gambling",
+    true
+  ],
+  "10009": [
+    "Porn",
+    true
+  ],
+  "10033": [
+    "Cars",
+    false
+  ],
+  "10047": [
+    "Business",
+    false
+  ],
+  "10085": [
+    "Proxies",
+    true
+  ],
+  "10088": [
+    "Online Messaging",
+    true
+  ],
+  "10104": [
+    "Education",
+    false
+  ],
+  "10106": [
+    "Educational Resources",
+    false
+  ],
+  "10112": [
+    "Language Learning",
+    false
+  ],
+  "10113": [
+    "Books",
+    false
+  ],
+  "10115": [
+    "Search Engines",
+    false
+  ],
+  "10124": [
+    "Streaming Services",
+    true
+  ],
+  "10125": [
+    "Music & Radio",
+    true
+  ],
+  "10126": [
+    "Music",
+    true
+  ],
+  "10127": [
+    "Entertainment",
+    true
+  ],
+  "10128": [
+    "News & Media",
+    false
+  ],
+  "10151": [
+    "Payment and Services",
+    false
+  ],
+  "10152": [
+    "Finance",
+    false
+  ],
+  "10182": [
+    "Food",
+    false
+  ],
+  "10260": [
+    "Unblocked Games",
+    true
+  ],
+  "10266": [
+    "Online Games",
+    true
+  ],
+  "10301": [
+    "General",
+    false
+  ],
+  "10303": [
+    "Web Applications",
+    false
+  ],
+  "10313": [
+    "Search Engines",
+    false
+  ],
+  "10316": [
+    "Advertisments",
+    true
+  ],
+  "10362": [
+    "Education Games",
+    false
+  ],
+  "10457": [
+    "Coding Tools",
+    false
+  ],
+  "10458": [
+    "Server Hosting",
+    true
+  ],
+  "10460": [
+    "Developer Tools",
+    false
+  ],
+  "10463": [
+    "Travel",
+    false
+  ],
+  "10497": [
+    "Artifical Inteligence",
+    true
+  ],
+  "10448": [
+    "VPN",
+    true
+  ]
+}

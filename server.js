@@ -5,8 +5,11 @@ const path = require("path")
 require("dotenv").config()
 
 const { lightspeed } = require("./filters/lightspeed.js")
-const { securly } = require("./filters/securly.js")
-const { contentkeeper } = require("./filters/contentkeeper.js")
+const { goguardian } = require("./filters/goguardian.js")
+const { linewize } = require("./filters/linewize.js")
+const { blocksiStandard, blocksiAI } = require("./filters/blocksi.js")
+const { senso } = require("./filters/senso.js")
+const { lanschool } = require("./filters/lanschool.js")
 const app = express()
 
 const PORT = Number(process.argv[2] || process.env.PORT) || 8080;
@@ -36,14 +39,17 @@ function tupleResult(result) {
   }
 }
 
-function contentKeeperResult(result) {
-  if (result === "Error" || !result || typeof result !== "object") {
+// For filters that return [category, blocked] where the second element is
+// true when the site is blocked (GoGuardian, Linewize, Blocksi, Senso).
+function blockedTupleResult(result) {
+  if (result === "Error" || !Array.isArray(result)) {
     return { status: "Error", category: "Error" }
   }
 
+  const [category, blocked] = result
   return {
-    status: result.blocked ? "Blocked" : "Unblocked",
-    category: result.category || "Unknown",
+    status: blocked ? "Blocked" : "Unblocked",
+    category: category || "Unknown",
   }
 }
 
@@ -148,10 +154,14 @@ app.post("/check-links", async (req, res) => {
   const checkLightspeed = filters?.lightspeed !== false
   const checkFortiGuard = filters?.fortiguard !== false
   const checkCisco = filters?.cisco === true
-  const checkSecurly = filters?.securly === true
-  const checkContentKeeper = filters?.contentkeeper === true
+  const checkGoGuardian = filters?.goguardian === true
+  const checkLinewize = filters?.linewize === true
+  const checkBlocksi = filters?.blocksi === true
+  const checkBlocksiAI = filters?.blocksiai === true
+  const checkSenso = filters?.senso === true
+  const checkLanSchool = filters?.lanschool === true
 
-  if (!checkLightspeed && !checkFortiGuard && !checkCisco && !checkSecurly && !checkContentKeeper) {
+  if (!checkLightspeed && !checkFortiGuard && !checkCisco && !checkGoGuardian && !checkLinewize && !checkBlocksi && !checkBlocksiAI && !checkSenso && !checkLanSchool) {
     return res.status(400).json({ error: "At least one filter must be selected." })
   }
 
@@ -179,14 +189,30 @@ app.post("/check-links", async (req, res) => {
           status: "Not Checked",
           category: "Not Checked",
         },
-        securly: {
+        goguardian: {
           status: "Not Checked",
           category: "Not Checked",
         },
-        contentkeeper: {
+        linewize: {
           status: "Not Checked",
           category: "Not Checked",
         },
+        blocksi: {
+          status: "Not Checked",
+          category: "Not Checked",
+        },
+        blocksiai: {
+          status: "Not Checked",
+          category: "Not Checked",
+        },
+        senso: {
+          status: "Not Checked",
+          category: "Not Checked",
+        },
+        lanschool: {
+          status: "Not Checked",
+          category: "Not Checked",
+        }
       }
 
       if (checkLightspeed) {
@@ -219,8 +245,86 @@ app.post("/check-links", async (req, res) => {
         }
       }
 
+      if (checkGoGuardian) {
+        console.log(`Checking GoGuardian for: ${cleanUrl}`)
+        try {
+          domainResult.goguardian = blockedTupleResult(await goguardian(cleanUrl))
+        } catch (goguardianError) {
+          console.error(`Error checking GoGuardian for ${cleanUrl}:`, goguardianError)
+          domainResult.goguardian = {
+            status: "Error",
+            category: "Error",
+          }
+        }
+      }
+
+      if (checkLinewize) {
+        console.log(`Checking Linewize for: ${cleanUrl}`)
+        try {
+          domainResult.linewize = blockedTupleResult(await linewize(cleanUrl))
+        } catch (linewizeError) {
+          console.error(`Error checking Linewize for ${cleanUrl}:`, linewizeError)
+          domainResult.linewize = {
+            status: "Error",
+            category: "Error",
+          }
+        }
+      }
+
+      if (checkBlocksi) {
+        console.log(`Checking Blocksi for: ${cleanUrl}`)
+        try {
+          domainResult.blocksi = blockedTupleResult(await blocksiStandard(cleanUrl))
+        } catch (blocksiError) {
+          console.error(`Error checking Blocksi for ${cleanUrl}:`, blocksiError)
+          domainResult.blocksi = {
+            status: "Error",
+            category: "Error",
+          }
+        }
+      }
+
+      if (checkBlocksiAI) {
+        console.log(`Checking Blocksi AI for: ${cleanUrl}`)
+        try {
+          domainResult.blocksiai = blockedTupleResult(await blocksiAI(cleanUrl))
+        } catch (blocksiAIError) {
+          console.error(`Error checking Blocksi AI for ${cleanUrl}:`, blocksiAIError)
+          domainResult.blocksiai = {
+            status: "Error",
+            category: "Error",
+          }
+        }
+      }
+
+      if (checkSenso) {
+        console.log(`Checking Senso for: ${cleanUrl}`)
+        try {
+          domainResult.senso = blockedTupleResult(await senso(cleanUrl))
+        } catch (sensoError) {
+          console.error(`Error checking Senso for ${cleanUrl}:`, sensoError)
+          domainResult.senso = {
+            status: "Error",
+            category: "Error",
+          }
+        }
+      }
+
+      if (checkLanSchool) {
+        console.log(`Checking LanSchool for: ${cleanUrl}`)
+        try {
+          domainResult.lanschool = blockedTupleResult(await lanschool(cleanUrl))
+        } catch (lanschoolError) {
+          console.error(`Error checking LanSchool for ${cleanUrl}:`, lanschoolError)
+          domainResult.lanschool = {
+            status: "Error",
+            category: "Error",
+          }
+        }
+      }
+
       if (checkCisco) {
-        console.log(`Checking Cisco Talos for: ${cleanUrl}`)
+        console.log(`Checking Cisco Talos for: ${cleanUrl}`)  
         try {
           const ciscoData = await fetchCisco(cleanUrl)
           domainResult.cisco = {
@@ -230,32 +334,6 @@ app.post("/check-links", async (req, res) => {
         } catch (ciscoError) {
           console.error(`Error checking Cisco Talos for ${cleanUrl}:`, ciscoError)
           domainResult.cisco = {
-            status: "Error",
-            category: "Error",
-          }
-        }
-      }
-
-      if (checkSecurly) {
-        console.log(`Checking Securly for: ${cleanUrl}`)
-        try {
-          domainResult.securly = tupleResult(await securly(cleanUrl))
-        } catch (securlyError) {
-          console.error(`Error checking Securly for ${cleanUrl}:`, securlyError)
-          domainResult.securly = {
-            status: "Error",
-            category: "Error",
-          }
-        }
-      }
-
-      if (checkContentKeeper) {
-        console.log(`Checking ContentKeeper for: ${cleanUrl}`)
-        try {
-          domainResult.contentkeeper = contentKeeperResult(await contentkeeper(cleanUrl))
-        } catch (contentKeeperError) {
-          console.error(`Error checking ContentKeeper for ${cleanUrl}:`, contentKeeperError)
-          domainResult.contentkeeper = {
             status: "Error",
             category: "Error",
           }
@@ -275,17 +353,33 @@ app.post("/check-links", async (req, res) => {
           status: checkFortiGuard ? "Error" : "Not Checked",
           category: checkFortiGuard ? "Error" : "Not Checked",
         },
+        goguardian: {
+          status: checkGoGuardian ? "Error" : "Not Checked",
+          category: checkGoGuardian ? "Error" : "Not Checked",
+        },
+        linewize: {
+          status: checkLinewize ? "Error" : "Not Checked",
+          category: checkLinewize ? "Error" : "Not Checked",
+        },
+        blocksi: {
+          status: checkBlocksi ? "Error" : "Not Checked",
+          category: checkBlocksi ? "Error" : "Not Checked",
+        },
+        blocksiai: {
+          status: checkBlocksiAI ? "Error" : "Not Checked",
+          category: checkBlocksiAI ? "Error" : "Not Checked",
+        },
+        senso: {
+          status: checkSenso ? "Error" : "Not Checked",
+          category: checkSenso ? "Error" : "Not Checked",
+        },
+        lanschool: {
+          status: checkLanSchool ? "Error" : "Not Checked",
+          category: checkLanSchool ? "Error" : "Not Checked",
+        },
         cisco: {
           status: checkCisco ? "Error" : "Not Checked",
           category: checkCisco ? "Error" : "Not Checked",
-        },
-        securly: {
-          status: checkSecurly ? "Error" : "Not Checked",
-          category: checkSecurly ? "Error" : "Not Checked",
-        },
-        contentkeeper: {
-          status: checkContentKeeper ? "Error" : "Not Checked",
-          category: checkContentKeeper ? "Error" : "Not Checked",
         },
       })
     } finally {

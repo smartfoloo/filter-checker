@@ -1,9 +1,13 @@
 const FILTERS = [
   { key: "lightspeed", label: "Lightspeed", buttonId: "lightspeedFilter" },
   { key: "fortiguard", label: "FortiGuard", buttonId: "fortiguardFilter" },
+  { key: "goguardian", label: "GoGuardian", buttonId: "goguardianFilter" },
+  { key: "linewize", label: "Linewize", buttonId: "linewizeFilter" },
+  { key: "blocksi", label: "Blocksi", buttonId: "blocksiFilter" },
+  { key: "blocksiai", label: "Blocksi AI", buttonId: "blocksiaiFilter" },
+  { key: "senso", label: "Senso", buttonId: "sensoFilter" },
+  { key: "lanschool", label: "LanSchool", buttonId: "lanschoolFilter" },
   { key: "cisco", label: "Cisco Talos", buttonId: "ciscoFilter" },
-  { key: "securly", label: "Securly", buttonId: "securlyFilter" },
-  { key: "contentkeeper", label: "ContentKeeper", buttonId: "contentkeeperFilter" },
 ]
 
 const inputScreen = document.getElementById("inputScreen")
@@ -214,9 +218,13 @@ async function checkLinks() {
         filters: {
           lightspeed: activeFilters.some((f) => f.key === "lightspeed"),
           fortiguard: activeFilters.some((f) => f.key === "fortiguard"),
+          goguardian: activeFilters.some((f) => f.key === "goguardian"),
+          linewize: activeFilters.some((f) => f.key === "linewize"),
+          blocksi: activeFilters.some((f) => f.key === "blocksi"),
+          blocksiai: activeFilters.some((f) => f.key === "blocksiai"),
+          senso: activeFilters.some((f) => f.key === "senso"),
+          lanschool: activeFilters.some((f) => f.key === "lanschool"),
           cisco: activeFilters.some((f) => f.key === "cisco"),
-          securly: activeFilters.some((f) => f.key === "securly"),
-          contentkeeper: activeFilters.some((f) => f.key === "contentkeeper"),
         },
       }),
     })
